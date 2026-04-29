@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+websockets
+numpy
+pandas
+requests
+scipy
+# optional for later
+# openai
+# redis
