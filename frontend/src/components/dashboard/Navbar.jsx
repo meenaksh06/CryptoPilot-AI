@@ -1,28 +1,29 @@
 import { useState } from 'react';
 
-export const Navbar = ({ darkMode, onToggleDark }) => {
+export const Navbar = ({ darkMode, setDarkMode }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
-          <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
             <span className="text-white text-sm font-extrabold">CP</span>
           </div>
-          <span className="text-base font-extrabold text-gray-900 tracking-tight">
-            CryptoPilot <span className="text-indigo-600">AI</span>
-          </span>
+          <div className="hidden sm:block">
+            <span className="text-base font-extrabold text-gray-900 tracking-tight">CryptoPilot</span>
+            <span className="ml-1.5 text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md">AI</span>
+          </div>
         </div>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {['Dashboard', 'Markets', 'Strategy', 'History'].map((item, i) => (
+        {/* Center nav links — desktop */}
+        <div className="hidden md:flex items-center gap-1">
+          {['Dashboard', 'Markets', 'Portfolio', 'History', 'Settings'].map((item) => (
             <button
               key={item}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                i === 0
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                item === 'Dashboard'
                   ? 'bg-indigo-50 text-indigo-700'
                   : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
               }`}
@@ -30,48 +31,51 @@ export const Navbar = ({ darkMode, onToggleDark }) => {
               {item}
             </button>
           ))}
-        </nav>
+        </div>
 
         {/* Right side */}
         <div className="flex items-center gap-2">
           {/* Live badge */}
-          <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 rounded-full border border-emerald-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot" />
             <span className="text-xs font-semibold text-emerald-700">Live</span>
           </div>
 
           {/* Dark mode toggle */}
           <button
-            onClick={onToggleDark}
-            className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all text-base"
+            onClick={() => setDarkMode(!darkMode)}
+            className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-all"
             title="Toggle dark mode"
           >
             {darkMode ? '☀️' : '🌙'}
           </button>
 
           {/* Avatar */}
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            AI
+          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-sm font-bold cursor-pointer">
+            M
           </div>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200"
             onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500"
           >
-            <span className="text-gray-600 text-lg">{menuOpen ? '✕' : '☰'}</span>
+            {menuOpen ? '✕' : '☰'}
           </button>
         </div>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-1">
-          {['Dashboard', 'Markets', 'Strategy', 'History'].map((item, i) => (
+        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
+          {['Dashboard', 'Markets', 'Portfolio', 'History', 'Settings'].map((item) => (
             <button
               key={item}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium text-left transition-colors ${
-                i === 0 ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'
+              onClick={() => setMenuOpen(false)}
+              className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                item === 'Dashboard'
+                  ? 'bg-indigo-50 text-indigo-700'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
               }`}
             >
               {item}
@@ -79,6 +83,6 @@ export const Navbar = ({ darkMode, onToggleDark }) => {
           ))}
         </div>
       )}
-    </header>
+    </nav>
   );
 };

@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
+/* Google Fonts loaded via index.html to avoid PostCSS @import ordering issues */
 * {
   font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }
 
 body {
   background-color: #f7f8fa;
   color: #1a1a2e;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar for horizontal scroll */
+/* ── Scrollbar ─────────────────────────────────── */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -20,35 +22,35 @@ body {
   display: none;
 }
 
-/* Micro sparkline animation */
+/* ── Sparkline draw animation ──────────────────── */
 @keyframes drawLine {
   from { stroke-dashoffset: 200; }
-  to { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: 0; }
 }
 .sparkline-path {
   stroke-dasharray: 200;
   animation: drawLine 1.2s ease-out forwards;
 }
 
-/* Pulse dot for live indicator */
+/* ── Live indicator pulse ──────────────────────── */
 @keyframes livePulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.4); }
+  50%       { opacity: 0.5; transform: scale(1.5); }
 }
 .live-dot {
   animation: livePulse 1.8s ease-in-out infinite;
 }
 
-/* Card hover lift */
+/* ── Card hover lift ───────────────────────────── */
 .card-hover {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .card-hover:hover {
-  box-shadow: 0 8px 32px -4px rgba(0,0,0,0.10);
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
-/* Badge pill */
+/* ── Badge pill ────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -60,11 +62,20 @@ body {
   text-transform: uppercase;
 }
 
-/* Confidence bar fill animation */
+/* ── Confidence bar fill ───────────────────────── */
 @keyframes fillBar {
   from { width: 0%; }
-  to { width: var(--fill); }
+  to   { width: var(--fill); }
 }
 .confidence-bar-fill {
   animation: fillBar 1s ease-out forwards;
+}
+
+/* ── Ticker scroll ─────────────────────────────── */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-scroll {
+  animation: ticker 30s linear infinite;
 }
