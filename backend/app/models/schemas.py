@@ -19,6 +19,9 @@ class MarketData(BaseModel):
     timestamp: datetime
     rsi: Optional[float] = None
     volatility: Optional[float] = None
+    sma: Optional[float] = None
+    ema: Optional[float] = None
+    sentiment: Optional[float] = None # -1.0 to 1.0
 
 class AgentDecision(BaseModel):
     action: Action
