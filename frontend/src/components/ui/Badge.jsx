@@ -38,11 +38,11 @@ export const ActionBadge = ({ action, size = 'sm' }) => {
 export const Divider = () => <div className="h-px w-full bg-gray-100 my-4" />;
 
 // Section header
-export const SectionHeader = ({ title, subtitle, action }) => (
+export const SectionHeader = ({ title, subtitle, action, dark = false }) => (
   <div className="flex items-end justify-between mb-5">
     <div>
-      <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-      {subtitle && <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>}
+      <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{title}</h2>
+      {subtitle && <p className={`text-sm mt-0.5 ${dark ? 'text-gray-400' : 'text-gray-400'}`}>{subtitle}</p>}
     </div>
     {action && (
       <button className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
