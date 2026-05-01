@@ -1,56 +1,47 @@
 import { portfolio } from '../../data/mockData';
-import { useApp } from '../../context/AppContext';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n);
 const pct = (n) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
 
 export const PortfolioSummary = () => {
-  const { darkMode: dark } = useApp();
   const isUp = portfolio.todayChangePct >= 0;
-  const card = dark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100';
-  const heading = dark ? 'text-white' : 'text-gray-900';
-  const muted = dark ? 'text-gray-400' : 'text-gray-400';
 
   return (
-    <div className={`rounded-2xl shadow-sm border p-6 card-hover ${card}`}>
-      <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-        <div className="flex-1">
-          <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${muted}`}>
-            Total Portfolio Value
-          </p>
-          <div className="flex items-end gap-3">
-            <span className={`text-4xl font-extrabold tracking-tight ${heading}`}>
+    <div className="premium-panel overflow-hidden p-6 lg:p-8">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Total portfolio value</p>
+          <div className="mt-3 flex flex-wrap items-end gap-4">
+            <span className="text-4xl font-black tracking-[-0.04em] text-white sm:text-6xl">
               {fmt(portfolio.totalValue)}
             </span>
-            <span className={`flex items-center gap-1 text-sm font-bold mb-1 ${isUp ? 'text-emerald-600' : 'text-red-500'}`}>
-              {isUp ? '▲' : '▼'} {pct(portfolio.todayChangePct)}
-              <span className={`font-normal ml-1 ${muted}`}>today</span>
+            <span className={`mb-2 text-sm font-bold ${isUp ? 'text-emerald-200' : 'text-red-200'}`}>
+              {pct(portfolio.todayChangePct)} today
             </span>
           </div>
-          <p className={`text-sm mt-1 ${isUp ? 'text-emerald-600' : 'text-red-500'}`}>
-            {isUp ? '+' : ''}{fmt(portfolio.todayChange)} today
+          <p className={`mt-2 text-sm font-semibold ${isUp ? 'text-emerald-300' : 'text-red-300'}`}>
+            {isUp ? '+' : ''}{fmt(portfolio.todayChange)} in today's session
           </p>
         </div>
-        <div className={`hidden sm:block w-px h-16 ${dark ? 'bg-gray-700' : 'bg-gray-100'}`} />
-        <div className="flex gap-8">
-          <div>
-            <p className={`text-xs uppercase tracking-wider mb-1 ${muted}`}>Invested</p>
-            <p className={`text-lg font-bold ${heading}`}>{fmt(portfolio.invested)}</p>
-          </div>
-          <div>
-            <p className={`text-xs uppercase tracking-wider mb-1 ${muted}`}>Total P&L</p>
-            <p className={`text-lg font-bold ${portfolio.pnl >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-              {portfolio.pnl >= 0 ? '+' : ''}{fmt(portfolio.pnl)}
-              <span className={`text-sm font-normal ml-1 ${muted}`}>({pct(portfolio.pnlPct)})</span>
-            </p>
-          </div>
+
+        <div className="grid min-w-full grid-cols-2 gap-px bg-white/10 sm:min-w-[420px]">
+          {[
+            ['Invested', fmt(portfolio.invested), 'capital deployed'],
+            ['Total P&L', `${portfolio.pnl >= 0 ? '+' : ''}${fmt(portfolio.pnl)}`, `${pct(portfolio.pnlPct)} overall`],
+          ].map(([label, value, sub]) => (
+            <div key={label} className="bg-[#101010] p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/35">{label}</p>
+              <p className="mt-2 text-lg font-black text-white">{value}</p>
+              <p className="mt-1 text-xs text-white/38">{sub}</p>
+            </div>
+          ))}
         </div>
       </div>
-      <div className={`flex items-center gap-2 mt-5 pt-4 border-t ${dark ? 'border-gray-700' : 'border-gray-100'}`}>
-        <span className="w-2 h-2 rounded-full bg-emerald-500 live-dot" />
-        <span className={`text-xs ${muted}`}>Agent running · Updated just now</span>
-        <span className={`ml-auto text-xs ${dark ? 'text-gray-600' : 'text-gray-300'}`}>BTC/USDT · Simulation Mode</span>
+      <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/10 pt-5">
+        <span className="h-2 w-2 rounded-full bg-emerald-300 live-dot" />
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">Agent running</span>
+        <span className="ml-auto text-xs uppercase tracking-[0.18em] text-white/28">BTC/USDT · Simulation Mode</span>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import { useEffect, useState } from 'react';
+import { Quote, Star } from 'lucide-react';
 
 const TESTIMONIALS = [
   {
@@ -7,240 +7,171 @@ const TESTIMONIALS = [
     name: 'Marcus Chen',
     role: 'Crypto Trader',
     avatar: 'MC',
-    rating: 5,
-    text: 'CryptoPilot AI has completely transformed my trading strategy. The AI signals have been incredibly accurate, and I\'ve seen a 40% increase in my portfolio since using it.',
+    text: 'CryptoPilot AI has completely transformed my trading strategy. The AI signals have been incredibly accurate, and I have seen a 40% increase in my simulated portfolio.',
     platform: 'Trustpilot',
-    date: 'Apr 15, 2026'
+    date: 'Apr 15, 2026',
   },
   {
     id: 2,
     name: 'Sarah Williams',
     role: 'DeFi Investor',
     avatar: 'SW',
-    rating: 5,
-    text: 'The risk management features are top-notch. I sleep better knowing my portfolio is protected by automated stop-losses. Best crypto tool I\'ve used.',
+    text: 'The risk management features are top-notch. I sleep better knowing my portfolio is protected by automated stop-losses.',
     platform: 'Product Hunt',
-    date: 'Apr 12, 2026'
+    date: 'Apr 12, 2026',
   },
   {
     id: 3,
     name: 'James Rodriguez',
     role: 'Day Trader',
     avatar: 'JR',
-    rating: 5,
-    text: 'The real-time analytics are game-changing. I can make informed decisions faster than ever before. The AI insights are like having a expert trader by my side 24/7.',
+    text: 'The real-time analytics are game-changing. I can make informed decisions faster than ever before.',
     platform: 'G2',
-    date: 'Apr 10, 2026'
+    date: 'Apr 10, 2026',
   },
   {
     id: 4,
     name: 'Emily Zhang',
     role: 'Portfolio Manager',
     avatar: 'EZ',
-    rating: 5,
-    text: 'As a professional portfolio manager, I\'m impressed by the sophistication of the AI engine. It\'s like having a team of analysts working around the clock.',
+    text: 'As a portfolio manager, I am impressed by the sophistication of the AI engine. It feels like a tireless research desk.',
     platform: 'Trustpilot',
-    date: 'Apr 8, 2026'
+    date: 'Apr 8, 2026',
   },
   {
     id: 5,
     name: 'David Park',
     role: 'Hedge Fund Analyst',
     avatar: 'DP',
-    rating: 5,
-    text: 'The neural network predictions have been remarkably accurate. I\'ve recommended CryptoPilot to my entire team. It\'s that good.',
+    text: 'The neural network predictions have been remarkably sharp. I have recommended CryptoPilot to my entire team.',
     platform: 'Capterra',
-    date: 'Apr 5, 2026'
+    date: 'Apr 5, 2026',
   },
   {
     id: 6,
     name: 'Lisa Thompson',
     role: 'Crypto Educator',
     avatar: 'LT',
-    rating: 5,
-    text: 'I recommend CryptoPilot to all my students. The educational insights combined with AI-powered trading make it the complete package.',
+    text: 'I recommend CryptoPilot to my students because the educational insights sit right next to the AI-powered trading context.',
     platform: 'Trustpilot',
-    date: 'Apr 3, 2026'
-  }
+    date: 'Apr 3, 2026',
+  },
 ];
 
 const STATS = [
-  { value: '4.9/5', label: 'Average Rating', icon: '⭐' },
-  { value: '12K+', label: 'Reviews', icon: '💬' },
-  { value: '98%', label: 'Would Recommend', icon: '👍' },
-  { value: '50K+', label: 'Trades Executed', icon: '📈' }
+  { value: '4.9/5', label: 'average rating' },
+  { value: '12K+', label: 'reviews' },
+  { value: '98%', label: 'recommend' },
+  { value: '50K+', label: 'trades simulated' },
 ];
 
-const TRUST_LOGOS = [
-  { name: 'CoinDesk', icon: '📰' },
-  { name: 'CryptoSlate', icon: '🗞️' },
-  { name: 'The Block', icon: '📑' },
-  { name: 'Bloomberg', icon: '🏛️' },
-  { name: 'Reuters', icon: 'Agency' },
-  { name: 'CoinTelegraph', icon: '📷' }
-];
+const TRUST_LOGOS = ['CoinDesk', 'CryptoSlate', 'The Block', 'Bloomberg', 'Reuters', 'CoinTelegraph'];
+
+const Stars = () => (
+  <span className="flex gap-1 text-amber-200">
+    {Array.from({ length: 5 }).map((_, index) => <Star key={index} size={14} fill="currentColor" />)}
+  </span>
+);
 
 export default function TestimonialsPage() {
-  const { darkMode: dark } = useApp();
   const [activeReview, setActiveReview] = useState(0);
-  const [animatedStats, setAnimatedStats] = useState({ reviews: 0, trades: 0 });
-
-  useEffect(() => {
-    const targets = { reviews: 12000, trades: 50000 };
-    const duration = 2000;
-    const steps = 60;
-    const interval = setInterval(() => {
-      setAnimatedStats(prev => ({
-        reviews: Math.min(prev.reviews + Math.ceil(targets.reviews / steps), targets.reviews),
-        trades: Math.min(prev.trades + Math.ceil(targets.trades / steps), targets.trades)
-      }));
-    }, duration / steps);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveReview(prev => (prev + 1) % TESTIMONIALS.length);
+      setActiveReview((prev) => (prev + 1) % TESTIMONIALS.length);
     }, 5000);
     return () => clearInterval(timer);
   }, []);
 
-  const renderStars = (rating) => {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-  };
+  const featured = TESTIMONIALS[activeReview];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Hero Section */}
-      <div className="text-center mb-16">
-        <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold mb-4">
-          ⭐ Trusted by 50,000+ Traders
-        </span>
-        <h1 className={`text-4xl md:text-5xl font-bold ${dark ? 'text-white' : 'text-gray-900'} mb-4`}>
-          What Our Users Say
-        </h1>
-        <p className={`text-lg ${dark ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}>
-          Join thousands of satisfied traders who have transformed their crypto journey with CryptoPilot AI
-        </p>
-      </div>
+    <main className="min-h-screen bg-[#080808] px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <section className="mb-12 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-white/35">trusted by disciplined traders</p>
+          <h1 className="mx-auto mt-5 max-w-3xl text-5xl font-black leading-[0.95] tracking-[-0.04em] text-white md:text-6xl">
+            the proof writes itself.
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/45">
+            Traders use CryptoPilot to keep strategy, risk, and signal confidence in one premium command surface.
+          </p>
+        </section>
 
-      {/* Stats Bar */}
-      <div className={`mb-16 rounded-2xl p-8 ${dark ? 'bg-gray-800' : 'bg-white'} border ${dark ? 'border-gray-700' : 'border-gray-100'} shadow-lg`}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-indigo-600 mb-2">
-                {i === 0 ? stat.value : i === 1 ? animatedStats.reviews.toLocaleString() + '+' : i === 2 ? stat.value : animatedStats.trades.toLocaleString() + '+'}
-              </div>
-              <div className={`text-sm ${dark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
+        <section className="mb-12 grid grid-cols-2 gap-px bg-white/10 md:grid-cols-4">
+          {STATS.map((stat) => (
+            <div key={stat.label} className="bg-[#101010] p-6 text-center">
+              <p className="text-3xl font-black text-white">{stat.value}</p>
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">{stat.label}</p>
             </div>
           ))}
-        </div>
-      </div>
+        </section>
 
-      {/* Featured Review Carousel */}
-      <div className="mb-16">
-        <div className={`relative overflow-hidden rounded-3xl ${dark ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-indigo-600 to-purple-600'} p-8 md:p-12`}>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-          
-          <div className="relative z-10 max-w-3xl mx-auto text-center">
-            <div className="text-6xl mb-6">"</div>
-            <p className="text-xl md:text-2xl text-white/90 font-medium mb-8 leading-relaxed">
-              {TESTIMONIALS[activeReview].text}
+        <section className="premium-panel mb-12 p-8 md:p-12">
+          <div className="mx-auto max-w-3xl text-center">
+            <Quote className="mx-auto mb-8 text-white/25" size={40} />
+            <p className="text-2xl font-bold leading-10 tracking-[-0.02em] text-white md:text-3xl">
+              "{featured.text}"
             </p>
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-white text-xl font-bold">
-                {TESTIMONIALS[activeReview].avatar}
+            <div className="mt-8 flex items-center justify-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center bg-white text-sm font-black text-black">
+                {featured.avatar}
               </div>
               <div className="text-left">
-                <p className="text-white font-bold text-lg">{TESTIMONIALS[activeReview].name}</p>
-                <p className="text-white/70 text-sm">{TESTIMONIALS[activeReview].role}</p>
+                <p className="font-bold text-white">{featured.name}</p>
+                <p className="text-sm text-white/40">{featured.role}</p>
               </div>
             </div>
-            <div className="text-yellow-400 text-xl mb-2">{renderStars(TESTIMONIALS[activeReview].rating)}</div>
-            <p className="text-white/50 text-sm">{TESTIMONIALS[activeReview].platform} • {TESTIMONIALS[activeReview].date}</p>
-            
-            {/* Dots */}
-            <div className="flex justify-center gap-2 mt-8">
-              {TESTIMONIALS.map((_, i) => (
+            <div className="mt-5 flex justify-center"><Stars /></div>
+            <p className="mt-3 text-xs uppercase tracking-[0.18em] text-white/30">{featured.platform} · {featured.date}</p>
+            <div className="mt-8 flex justify-center gap-2">
+              {TESTIMONIALS.map((testimonial, index) => (
                 <button
-                  key={i}
-                  onClick={() => setActiveReview(i)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    i === activeReview ? 'bg-white w-8' : 'bg-white/30 hover:bg-white/50'
-                  }`}
+                  key={testimonial.id}
+                  onClick={() => setActiveReview(index)}
+                  className={`h-2 transition-all ${index === activeReview ? 'w-8 bg-white' : 'w-2 bg-white/25 hover:bg-white/50'}`}
+                  title={testimonial.name}
                 />
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Review Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-        {TESTIMONIALS.map((testimonial, i) => (
-          <div
-            key={testimonial.id}
-            className={`group p-6 rounded-2xl border transition-all hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-2 ${
-              dark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
-            }`}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                  {testimonial.avatar}
+        <section className="mb-12 grid gap-px bg-white/10 md:grid-cols-2 lg:grid-cols-3">
+          {TESTIMONIALS.map((testimonial) => (
+            <article key={testimonial.id} className="bg-[#0c0c0c] p-6 transition-colors hover:bg-[#111]">
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center border border-white/10 bg-white/[0.04] text-xs font-black text-white">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <p className="font-bold text-white">{testimonial.name}</p>
+                    <p className="text-xs text-white/35">{testimonial.role}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className={`font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>{testimonial.name}</p>
-                  <p className={`text-sm ${dark ? 'text-gray-500' : 'text-gray-500'}`}>{testimonial.role}</p>
-                </div>
+                <Stars />
               </div>
-              <span className="text-yellow-400">{renderStars(testimonial.rating)}</span>
-            </div>
-            <p className={`text-sm leading-relaxed mb-4 ${dark ? 'text-gray-400' : 'text-gray-600'}`}>
-              {testimonial.text}
-            </p>
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-              <span className={`text-xs ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{testimonial.platform}</span>
-              <span className={`text-xs ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{testimonial.date}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Trust Section */}
-      <div className={`rounded-2xl p-8 md:p-12 ${dark ? 'bg-gray-800' : 'bg-gray-50'} border ${dark ? 'border-gray-700' : 'border-gray-100'}`}>
-        <div className="text-center mb-8">
-          <h2 className={`text-2xl font-bold ${dark ? 'text-white' : 'text-gray-900'} mb-2`}>
-            Featured In
-          </h2>
-          <p className={`${dark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Trusted by leading crypto publications
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-          {TRUST_LOGOS.map((logo, i) => (
-            <div key={i} className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
-              <span className="text-2xl">{logo.icon}</span>
-              <span className={`font-semibold ${dark ? 'text-gray-400' : 'text-gray-600'}`}>{logo.name}</span>
-            </div>
+              <p className="min-h-28 text-sm leading-6 text-white/48">{testimonial.text}</p>
+              <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs uppercase tracking-[0.16em] text-white/28">
+                <span>{testimonial.platform}</span>
+                <span>{testimonial.date}</span>
+              </div>
+            </article>
           ))}
-        </div>
-      </div>
+        </section>
 
-      {/* CTA */}
-      <div className="mt-16 text-center">
-        <h2 className={`text-2xl font-bold ${dark ? 'text-white' : 'text-gray-900'} mb-4`}>
-          Ready to join thousands of successful traders?
-        </h2>
-        <p className={`mb-6 ${dark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Start your free trial today — no credit card required
-        </p>
-        <button className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/30">
-          Get Started Free →
-        </button>
+        <section className="premium-panel p-8 text-center">
+          <p className="mb-6 text-xs font-bold uppercase tracking-[0.3em] text-white/35">featured in</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            {TRUST_LOGOS.map((name) => (
+              <span key={name} className="border border-white/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white/45">
+                {name}
+              </span>
+            ))}
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

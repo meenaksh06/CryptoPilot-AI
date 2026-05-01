@@ -407,3 +407,16 @@ body {
 .smooth-all {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ── Premium Product Shell ─────────────────────── */
+.premium-panel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.018)),
+    #101010;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
+}
+
+.premium-panel:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}

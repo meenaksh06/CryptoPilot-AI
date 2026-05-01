@@ -1,74 +1,55 @@
+import { BrainCircuit } from 'lucide-react';
 import { aiDecision } from '../../data/mockData';
-import { useApp } from '../../context/AppContext';
 
 export const AIDecisionPanel = () => {
-  const { darkMode: dark } = useApp();
-  const isUp   = aiDecision.action === 'BUY';
+  const isUp = aiDecision.action === 'BUY';
   const isDown = aiDecision.action === 'SELL';
-
-  const actionGradient = isUp   ? 'from-emerald-500 to-teal-500'
-                       : isDown ? 'from-red-500 to-rose-500'
-                       :          'from-gray-400 to-gray-500';
-
-  const bgTint = isUp   ? dark ? 'bg-emerald-950/40 border-emerald-800/40' : 'bg-emerald-50 border-emerald-100'
-               : isDown ? dark ? 'bg-red-950/40 border-red-800/40'         : 'bg-red-50 border-red-100'
-               :          dark ? 'bg-gray-800/60 border-gray-700'          : 'bg-gray-50 border-gray-200';
-
-  const reasonBg = dark ? 'bg-white/5 border-white/10' : 'bg-white/70 border-white';
-  const muted    = dark ? 'text-gray-400' : 'text-gray-400';
+  const accent = isUp ? 'text-emerald-200' : isDown ? 'text-red-200' : 'text-white/60';
+  const bar = isUp ? 'bg-emerald-300' : isDown ? 'bg-red-300' : 'bg-white/45';
 
   return (
-    <div className={`rounded-2xl border p-6 card-hover ${bgTint}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🤖</span>
-          <span className={`text-xs font-bold uppercase tracking-widest ${muted}`}>AI Decision</span>
+    <div className="premium-panel p-6 lg:p-7">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center border border-white/10 bg-white/[0.04] text-white/60">
+            <BrainCircuit size={18} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/35">AI decision</p>
+            <p className="text-sm text-white/45">{aiDecision.updatedAgo}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot" />
-          <span className={`text-xs ${muted}`}>{aiDecision.updatedAgo}</span>
-        </div>
+        <span className="h-2 w-2 rounded-full bg-emerald-300 live-dot" />
       </div>
 
-      {/* Body */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-        {/* Big action pill */}
-        <div className={`bg-gradient-to-br ${actionGradient} text-white rounded-2xl px-8 py-5 text-center min-w-[120px] shadow-md flex-shrink-0`}>
-          <p className="text-xs font-semibold uppercase tracking-widest opacity-80 mb-1">Action</p>
-          <p className="text-3xl font-extrabold leading-none">{aiDecision.action}</p>
-          <p className="text-sm font-semibold opacity-90 mt-1">{aiDecision.asset}</p>
+      <div className="grid gap-6 lg:grid-cols-[180px_1fr]">
+        <div className="border border-white/10 bg-white/[0.04] p-5 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/35">Action</p>
+          <p className={`mt-4 text-5xl font-black tracking-[-0.04em] ${accent}`}>{aiDecision.action}</p>
+          <p className="mt-2 text-sm font-bold uppercase tracking-[0.2em] text-white/45">{aiDecision.asset}</p>
         </div>
 
-        {/* Details */}
-        <div className="flex-1 space-y-3">
-          <div>
-            <p className={`text-2xl font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>
-              {aiDecision.assetName}
-              <span className={`text-base font-normal ml-2 ${muted}`}>@ ${aiDecision.price.toLocaleString()}</span>
-            </p>
-            <p className={`text-xs mt-0.5 ${muted}`}>Strategy: {aiDecision.strategy}</p>
-          </div>
+        <div className="min-w-0">
+          <h3 className="text-3xl font-black tracking-[-0.03em] text-white">
+            {aiDecision.assetName}
+            <span className="ml-3 text-base font-medium text-white/38">@ ${aiDecision.price.toLocaleString()}</span>
+          </h3>
+          <p className="mt-2 text-xs font-bold uppercase tracking-[0.22em] text-white/35">
+            Strategy: {aiDecision.strategy}
+          </p>
 
-          {/* Confidence bar */}
-          <div>
-            <div className="flex justify-between mb-1.5">
-              <span className={`text-xs font-medium ${muted}`}>AI Confidence</span>
-              <span className={`text-xs font-bold ${isUp ? 'text-emerald-600' : isDown ? 'text-red-500' : 'text-gray-400'}`}>
-                {aiDecision.confidence}%
-              </span>
+          <div className="mt-6">
+            <div className="mb-2 flex justify-between text-xs font-bold uppercase tracking-[0.2em]">
+              <span className="text-white/35">Confidence</span>
+              <span className={accent}>{aiDecision.confidence}%</span>
             </div>
-            <div className={`h-2 rounded-full overflow-hidden ${dark ? 'bg-white/10' : 'bg-white/60 border border-white'}`}>
-              <div
-                className={`h-full rounded-full bg-gradient-to-r ${actionGradient} confidence-bar-fill`}
-                style={{ '--fill': `${aiDecision.confidence}%`, width: `${aiDecision.confidence}%` }}
-              />
+            <div className="h-2 overflow-hidden bg-white/10">
+              <div className={`h-full ${bar} confidence-bar-fill`} style={{ '--fill': `${aiDecision.confidence}%`, width: `${aiDecision.confidence}%` }} />
             </div>
           </div>
 
-          {/* Reason */}
-          <p className={`text-sm leading-relaxed rounded-xl p-3 border ${reasonBg} ${dark ? 'text-gray-300' : 'text-gray-600'}`}>
-            💡 {aiDecision.reason}
+          <p className="mt-5 border border-white/10 bg-black/20 p-4 text-sm leading-6 text-white/58">
+            {aiDecision.reason}
           </p>
         </div>
       </div>
