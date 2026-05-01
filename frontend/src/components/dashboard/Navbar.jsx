@@ -3,10 +3,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 
 const NAV_LINKS = [
-  { to: '/',         label: 'Dashboard' },
-  { to: '/markets',  label: 'Markets'   },
-  { to: '/portfolio',label: 'Portfolio' },
-  { to: '/history',  label: 'History'   },
+  { to: '/dashboard',  label: 'Dashboard' },
+  { to: '/markets',   label: 'Markets'   },
+  { to: '/portfolio', label: 'Portfolio' },
+  { to: '/history',   label: 'History'   },
+  { to: '/blog',      label: 'Blog'      },
+  { to: '/testimonials', label: 'Reviews' },
   { to: '/settings', label: 'Settings'  },
 ];
 

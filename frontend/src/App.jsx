@@ -7,6 +7,9 @@ import PortfolioPage from './pages/PortfolioPage';
 import HistoryPage   from './pages/HistoryPage';
 import SettingsPage  from './pages/SettingsPage';
 import ProfilePage   from './pages/ProfilePage';
+import LandingPage   from './pages/LandingPage';
+import BlogPage      from './pages/BlogPage';
+import TestimonialsPage from './pages/TestimonialsPage';
 
 const TICKER_ITEMS = [
   { sym: 'BTC',   price: 63412, change: +2.34 },
@@ -39,18 +42,58 @@ const TickerBar = () => (
 
 const Footer = () => (
   <footer className="border-t border-gray-100 bg-white mt-12">
-    <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center">
-          <span className="text-white text-[9px] font-extrabold">CP</span>
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h4 className="font-bold text-gray-900 mb-4">Product</h4>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li><a href="#" className="hover:text-indigo-600">Features</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Pricing</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Security</a></li>
+            <li><a href="#" className="hover:text-indigo-600">API</a></li>
+          </ul>
         </div>
-        <span className="text-sm font-bold text-gray-700">CryptoPilot AI</span>
-        <span className="text-xs text-gray-400">· Simulation Mode · Not financial advice</span>
+        <div>
+          <h4 className="font-bold text-gray-900 mb-4">Resources</h4>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li><a href="#" className="hover:text-indigo-600">Documentation</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Blog</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Tutorials</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Support</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold text-gray-900 mb-4">Company</h4>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li><a href="#" className="hover:text-indigo-600">About</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Careers</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Press</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold text-gray-900 mb-4">Legal</h4>
+          <ul className="space-y-2 text-sm text-gray-600">
+            <li><a href="#" className="hover:text-indigo-600">Privacy</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Terms</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Cookies</a></li>
+            <li><a href="#" className="hover:text-indigo-600">Licenses</a></li>
+          </ul>
+        </div>
       </div>
-      <div className="flex items-center gap-4 text-xs text-gray-400">
-        <span>Powered by FastAPI + React</span>
-        <span>·</span>
-        <span>Agentic Decision Engine v2</span>
+      <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-gray-100 gap-4">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <span className="text-white text-[9px] font-extrabold">CP</span>
+          </div>
+          <span className="text-sm font-bold text-gray-700">CryptoPilot AI</span>
+          <span className="text-xs text-gray-400">· Simulation Mode · Not financial advice</span>
+        </div>
+        <div className="flex items-center gap-4 text-xs text-gray-400">
+          <span>Powered by FastAPI + React</span>
+          <span>·</span>
+          <span>Agentic Decision Engine v2</span>
+        </div>
       </div>
     </div>
   </footer>
@@ -60,17 +103,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppProvider>
-        <TickerBar />
-        <Navbar />
         <Routes>
-          <Route path="/"          element={<DashboardPage />} />
-          <Route path="/markets"   element={<MarketsPage />}   />
-          <Route path="/portfolio" element={<PortfolioPage />} />
-          <Route path="/history"   element={<HistoryPage />}   />
-          <Route path="/settings"  element={<SettingsPage />}  />
-          <Route path="/profile"   element={<ProfilePage />}   />
+          <Route path="/"          element={<LandingPage />} />
+          <Route path="/dashboard" element={<><TickerBar /><Navbar /><DashboardPage /><Footer /></>} />
+          <Route path="/markets"   element={<><TickerBar /><Navbar /><MarketsPage /><Footer /></>} />
+          <Route path="/portfolio" element={<><TickerBar /><Navbar /><PortfolioPage /><Footer /></>} />
+          <Route path="/history"   element={<><TickerBar /><Navbar /><HistoryPage /><Footer /></>} />
+          <Route path="/settings"  element={<><TickerBar /><Navbar /><SettingsPage /><Footer /></>} />
+          <Route path="/profile"   element={<><TickerBar /><Navbar /><ProfilePage /><Footer /></>} />
+          <Route path="/blog"      element={<><TickerBar /><Navbar /><BlogPage /><Footer /></>} />
+          <Route path="/testimonials" element={<><TickerBar /><Navbar /><TestimonialsPage /><Footer /></>} />
         </Routes>
-        <Footer />
       </AppProvider>
     </BrowserRouter>
   );
