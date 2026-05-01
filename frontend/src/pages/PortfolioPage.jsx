@@ -1,140 +1,236 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { assets, portfolio, tradeHistory } from '../data/mockData';
-import { ActionBadge } from '../components/ui/Badge';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { portfolioApi } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
+import { PriceChart } from '../components/ui/PriceChart';
 
-const fmt = (n) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+const formatCurrency = (value) => `$${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 export default function PortfolioPage() {
-  const { darkMode: dark } = useApp();
-  const navigate = useNavigate();
+  const { token } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [analytics, setAnalytics] = useState(null);
 
-  const card  = dark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-100 text-gray-900';
-  const muted = dark ? 'text-gray-400' : 'text-gray-500';
-  const sub   = dark ? 'bg-gray-800' : 'bg-gray-50';
+  const tab = searchParams.get('tab') || 'overview';
 
-  const HOLDINGS = [
-    { symbol: 'BTC', name: 'Bitcoin',   amount: 0.042, buyPrice: 61200, currentPrice: 63412, allocation: 42 },
-    { symbol: 'ETH', name: 'Ethereum',  amount: 1.5,   buyPrice: 3280,  currentPrice: 3128,  allocation: 31 },
-    { symbol: 'SOL', name: 'Solana',    amount: 10,    buyPrice: 138.5, currentPrice: 148.9, allocation: 20 },
-    { symbol: 'BNB', name: 'BNB',       amount: 0.5,   buyPrice: 570,   currentPrice: 584,   allocation: 7  },
-  ];
+  useEffect(() => {
+    let active = true;
+    portfolioApi.analytics(token).then((payload) => {
+      if (active) {
+        setAnalytics(payload);
+      }
+    }).catch(() => {
+      if (active) {
+        setAnalytics(null);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
-  const totalInvested = HOLDINGS.reduce((s, h) => s + h.amount * h.buyPrice, 0);
-  const totalCurrent  = HOLDINGS.reduce((s, h) => s + h.amount * h.currentPrice, 0);
-  const totalPnL      = totalCurrent - totalInvested;
-  const totalPct      = ((totalPnL / totalInvested) * 100).toFixed(2);
+  const equityPoints = useMemo(
+    () => (analytics?.equity_curve || []).map((point) => ({ ...point, timestamp: point.timestamp })),
+    [analytics]
+  );
+
+  const failingStrategies = (analytics?.strategy_performance || []).filter((item) => item.state === 'failing');
+  const promisingStrategies = (analytics?.strategy_performance || []).filter((item) => item.state === 'promising');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      <div>
-        <h1 className={`text-3xl font-extrabold ${dark ? 'text-white' : 'text-gray-900'}`}>Portfolio</h1>
-        <p className={`mt-1 text-sm ${muted}`}>Your simulated holdings & performance</p>
-      </div>
-
-      {/* Summary row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Value',  value: fmt(totalCurrent * 83),  sub: 'Current',  color: 'text-gray-900' },
-          { label: 'Invested',     value: fmt(totalInvested * 83), sub: 'Cost basis', color: 'text-gray-900' },
-          { label: 'Total P&L',    value: `+${fmt(totalPnL * 83)}`, sub: `+${totalPct}% overall`, color: 'text-emerald-600' },
-          { label: "Today's P&L",  value: '+₹3,842', sub: '+1.37% today', color: 'text-emerald-600' },
-        ].map(s => (
-          <div key={s.label} className={`rounded-2xl border p-5 card-hover ${card}`}>
-            <p className={`text-xs uppercase tracking-wider mb-1 ${muted}`}>{s.label}</p>
-            <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
-            <p className={`text-xs mt-1 ${muted}`}>{s.sub}</p>
+    <main className="min-h-screen bg-[#080808] px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <section className="premium-panel p-6 lg:p-8">
+          <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-white/34">Unified portfolio and history</p>
+              <h1 className="mt-4 text-5xl font-black leading-[0.92] tracking-[-0.04em] text-white sm:text-6xl">
+                One command center for positions, history, and strategy memory.
+              </h1>
+              <p className="mt-4 max-w-3xl text-base leading-7 text-white/46">
+                This page now combines holdings, execution history, realized and unrealized P&L, plus a forward-looking strategy read on what is failing now and what is likely to work next.
+              </p>
+            </div>
+            <div className="grid gap-px bg-white/10 sm:grid-cols-2">
+              {[
+                ['Portfolio value', formatCurrency(analytics?.summary?.total_value)],
+                ['Total P&L', formatCurrency(analytics?.summary?.total_pnl)],
+                ['Win rate', `${analytics?.summary?.win_rate || 0}%`],
+                ['Cash balance', formatCurrency(analytics?.summary?.cash_balance)],
+              ].map(([label, value]) => (
+                <div key={label} className="bg-[#101010] p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/34">{label}</p>
+                  <p className="mt-3 text-2xl font-black text-white">{value}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
+        </section>
 
-      {/* Holdings */}
-      <div className={`rounded-2xl border ${card}`}>
-        <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: dark ? '#1f2937' : '#f3f4f6' }}>
-          <h2 className="font-bold text-lg">Holdings</h2>
-          <button onClick={() => navigate('/markets')} className="text-sm font-semibold text-indigo-600 hover:text-indigo-800">
-            + Add position →
-          </button>
-        </div>
-        <div className="divide-y" style={{ '--tw-divide-opacity': 1 }}>
-          {HOLDINGS.map(h => {
-            const pnl = (h.currentPrice - h.buyPrice) * h.amount;
-            const pnlPct = ((h.currentPrice / h.buyPrice - 1) * 100).toFixed(2);
-            const isUp = pnl >= 0;
-            return (
-              <div key={h.symbol} className={`px-5 py-4 flex items-center gap-4 ${dark ? 'border-gray-800' : 'border-gray-50'}`}>
-                <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xs font-extrabold text-indigo-600 flex-shrink-0">
-                  {h.symbol.slice(0,2)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-bold text-sm">{h.symbol} <span className={`font-normal text-xs ${muted}`}>{h.name}</span></p>
-                      <p className={`text-xs ${muted}`}>{h.amount} units @ ${h.buyPrice.toLocaleString()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-sm">${(h.amount * h.currentPrice).toLocaleString(undefined, {maximumFractionDigits: 0})}</p>
-                      <p className={`text-xs font-bold ${isUp ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {isUp ? '+' : ''}${pnl.toFixed(0)} ({isUp ? '+' : ''}{pnlPct}%)
-                      </p>
-                    </div>
-                  </div>
-                  {/* Allocation bar */}
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className={`flex-1 h-1.5 rounded-full ${dark ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                      <div className="h-full rounded-full bg-indigo-500" style={{ width: `${h.allocation}%` }} />
-                    </div>
-                    <span className={`text-[10px] font-semibold ${muted}`}>{h.allocation}%</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Allocation chart — visual donut style */}
-      <div className={`rounded-2xl border p-6 ${card}`}>
-        <h2 className="font-bold text-lg mb-5">Asset Allocation</h2>
-        <div className="flex flex-wrap gap-4">
-          {HOLDINGS.map((h, i) => {
-            const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500'];
-            return (
-              <div key={h.symbol} className="flex items-center gap-2">
-                <span className={`w-3 h-3 rounded-full ${colors[i]}`} />
-                <span className="text-sm font-semibold">{h.symbol}</span>
-                <span className={`text-sm ${muted}`}>{h.allocation}%</span>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex h-6 rounded-full overflow-hidden mt-5 gap-0.5">
-          {HOLDINGS.map((h, i) => {
-            const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500'];
-            return <div key={h.symbol} className={`${colors[i]} h-full`} style={{ width: `${h.allocation}%` }} />;
-          })}
-        </div>
-      </div>
-
-      {/* Risk metrics */}
-      <div className={`rounded-2xl border p-6 ${card}`}>
-        <h2 className="font-bold text-lg mb-5">Risk Dashboard</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {[
-            { label: 'Portfolio Beta', value: '1.24', note: 'Moderate risk', color: 'text-amber-500' },
-            { label: 'Sharpe Ratio',   value: '2.18', note: 'Good risk-adjusted return', color: 'text-emerald-500' },
-            { label: 'Max Drawdown',   value: '-8.4%', note: '30-day rolling', color: 'text-red-400' },
-          ].map(m => (
-            <div key={m.label} className={`p-4 rounded-xl ${sub}`}>
-              <p className={`text-xs uppercase tracking-wider mb-2 ${muted}`}>{m.label}</p>
-              <p className={`text-2xl font-extrabold ${m.color}`}>{m.value}</p>
-              <p className={`text-xs mt-1 ${muted}`}>{m.note}</p>
+            ['Invested', formatCurrency(analytics?.summary?.invested)],
+            ['Realized P&L', formatCurrency(analytics?.summary?.realized_pnl)],
+            ['Unrealized P&L', formatCurrency(analytics?.summary?.unrealized_pnl)],
+            ['Best trade', formatCurrency(analytics?.summary?.best_trade)],
+            ['Worst trade', formatCurrency(analytics?.summary?.worst_trade)],
+          ].map(([label, value]) => (
+            <div key={label} className="premium-panel p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/34">{label}</p>
+              <p className="mt-3 text-xl font-black text-white">{value}</p>
             </div>
           ))}
-        </div>
+        </section>
+
+        <section className="premium-panel p-5">
+          <div className="mb-5 flex flex-wrap gap-2">
+            {[
+              ['overview', 'Overview'],
+              ['history', 'History'],
+              ['strategies', 'Strategies'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => setSearchParams({ tab: value })}
+                className={`border px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] ${
+                  tab === value ? 'border-white bg-white text-black' : 'border-white/10 text-white/45'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'overview' ? (
+            <div className="space-y-8">
+              <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+                <PriceChart points={equityPoints} color="#6ee7b7" height={300} />
+                <div className="space-y-3">
+                  {(analytics?.allocation || []).map((item) => (
+                    <div key={item.symbol} className="border border-white/10 bg-white/[0.03] p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-black text-white">{item.symbol}</p>
+                        <p className="text-sm text-white/45">{item.allocation}%</p>
+                      </div>
+                      <p className="mt-1 text-xs text-white/35">{item.name}</p>
+                      <p className="mt-3 text-lg font-semibold text-white">{formatCurrency(item.value)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="premium-panel p-5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/34">Current holdings</p>
+                <div className="mt-5 space-y-3">
+                  {(analytics?.holdings || []).map((position) => {
+                    const pnl = (position.current_price - position.entry_price) * position.amount;
+                    return (
+                      <div key={position.id} className="flex items-center justify-between border border-white/10 bg-white/[0.03] px-4 py-4">
+                        <div>
+                          <p className="text-sm font-black text-white">{position.name}</p>
+                          <p className="text-xs text-white/35">{position.amount} {position.symbol} at {formatCurrency(position.entry_price)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-white">{formatCurrency(position.amount * position.current_price)}</p>
+                          <p className={`text-xs font-bold ${pnl >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                            {pnl >= 0 ? '+' : ''}{formatCurrency(pnl)} | {position.allocation}%
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {tab === 'history' ? (
+            <div className="space-y-3">
+              {(analytics?.history || []).map((trade) => (
+                <div key={trade.id} className="border border-white/10 bg-white/[0.03] px-4 py-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-sm font-black text-white">{trade.action} {trade.symbol}</p>
+                    <span className="text-xs text-white/35">{trade.strategy}</span>
+                    <span className="ml-auto text-xs text-white/35">{new Date(trade.timestamp).toLocaleString()}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-white/48">{trade.reason}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                    <span className="text-white/55">Entry {formatCurrency(trade.price)}</span>
+                    <span className="text-white/55">Current {formatCurrency(trade.current_price)}</span>
+                    <span className={trade.pnl >= 0 ? 'text-emerald-300 font-bold' : 'text-red-300 font-bold'}>
+                      {trade.pnl >= 0 ? '+' : ''}{formatCurrency(trade.pnl)} ({trade.pnl_pct}%)
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {tab === 'strategies' ? (
+            <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+              <div className="space-y-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/34">Strategy scorecard</p>
+                {(analytics?.strategy_performance || []).map((item) => (
+                  <div key={item.strategy} className="border border-white/10 bg-white/[0.03] p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-black text-white">{item.strategy}</p>
+                      <span className={`text-[10px] font-bold uppercase tracking-[0.18em] ${
+                        item.state === 'promising' ? 'text-emerald-300' :
+                        item.state === 'failing' ? 'text-red-300' :
+                        item.state === 'stable' ? 'text-white/60' : 'text-amber-200'
+                      }`}>
+                        {item.state}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-white/48">{item.summary}</p>
+                    <div className="mt-3 flex flex-wrap gap-4 text-xs text-white/35">
+                      <span>{item.trade_count} trades</span>
+                      <span>{Math.round(item.win_rate * 100)}% wins</span>
+                      <span>{formatCurrency(item.realized_pnl)}</span>
+                      <span>{item.recent_streak > 0 ? '+' : ''}{item.recent_streak} streak</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/34">Failing now</p>
+                  <div className="mt-4 space-y-3">
+                    {failingStrategies.map((item) => (
+                      <div key={item.strategy} className="border border-red-300/15 bg-red-300/8 p-4">
+                        <p className="text-sm font-black text-red-100">{item.strategy}</p>
+                        <p className="mt-2 text-sm text-red-100/70">{item.summary}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/34">Could work next</p>
+                  <div className="mt-4 space-y-3">
+                    {promisingStrategies.map((item) => (
+                      <div key={item.strategy} className="border border-emerald-300/15 bg-emerald-300/8 p-4">
+                        <p className="text-sm font-black text-emerald-100">{item.strategy}</p>
+                        <p className="mt-2 text-sm text-emerald-100/70">{item.summary}</p>
+                      </div>
+                    ))}
+                    {(analytics?.future_opportunities || []).map((item) => (
+                      <div key={item.title} className="border border-white/10 bg-white/[0.03] p-4">
+                        <p className="text-sm font-black text-white">{item.title}</p>
+                        <p className="mt-2 text-sm text-white/48">{item.summary}</p>
+                        <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+                          Opportunity score {Math.round(Number(item.score) * 100)}%
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

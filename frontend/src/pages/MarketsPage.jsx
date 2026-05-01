@@ -1,145 +1,224 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { assets } from '../data/mockData';
-import { ActionBadge } from '../components/ui/Badge';
-import { Sparkline } from '../components/ui/Sparkline';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowUpRight, BarChart3 } from 'lucide-react';
+import { marketsApi } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
+import { PriceChart } from '../components/ui/PriceChart';
 
-const FILTERS = ['All', 'BUY', 'SELL', 'HOLD'];
-const SORTS   = ['Price ↓', 'Price ↑', 'Change ↓', 'Change ↑', 'Confidence ↓'];
+const SORT_OPTIONS = [
+  { value: 'market_cap_desc', label: 'Market cap' },
+  { value: 'volume_desc', label: 'Volume' },
+  { value: 'id_asc', label: 'Name' },
+];
+
+const formatCurrency = (value) => `$${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 export default function MarketsPage() {
-  const { darkMode: dark } = useApp();
-  const [filter, setFilter] = useState('All');
-  const [sort,   setSort]   = useState('Price ↓');
+  const { token } = useAuth();
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState(null);
-  const navigate = useNavigate();
+  const [sort, setSort] = useState('market_cap_desc');
+  const [payload, setPayload] = useState(null);
+  const [selectedId, setSelectedId] = useState('bitcoin');
+  const [selectedRange, setSelectedRange] = useState('7d');
+  const [detail, setDetail] = useState(null);
+  const [history, setHistory] = useState([]);
 
-  const card   = dark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-100 text-gray-900';
-  const input  = dark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-800 placeholder-gray-400';
-  const muted  = dark ? 'text-gray-400' : 'text-gray-500';
-  const pillActive   = 'bg-indigo-600 text-white';
-  const pillInactive = dark ? 'bg-gray-800 text-gray-400 border border-gray-700 hover:border-indigo-400 hover:text-indigo-300' : 'bg-white text-gray-500 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600';
+  useEffect(() => {
+    let active = true;
+    marketsApi.list({ token, search, sort, limit: 60 })
+      .then((nextPayload) => {
+        if (!active) {
+          return;
+        }
+        setPayload(nextPayload);
+        if (!nextPayload.assets.find((asset) => asset.id === selectedId) && nextPayload.assets[0]) {
+          setSelectedId(nextPayload.assets[0].id);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setPayload(null);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [token, search, sort, selectedId]);
 
-  const filtered = assets
-    .filter(a => filter === 'All' || a.aiAction === filter)
-    .filter(a => a.symbol.toLowerCase().includes(search.toLowerCase()) || a.name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (sort === 'Price ↓') return b.price - a.price;
-      if (sort === 'Price ↑') return a.price - b.price;
-      if (sort === 'Change ↓') return b.change24h - a.change24h;
-      if (sort === 'Change ↑') return a.change24h - b.change24h;
-      return b.confidence - a.confidence;
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      marketsApi.detail({ token, assetId: selectedId }),
+      marketsApi.history({ token, assetId: selectedId, range: selectedRange }),
+    ]).then(([detailPayload, historyPayload]) => {
+      if (!active) {
+        return;
+      }
+      setDetail(detailPayload);
+      setHistory(historyPayload.points || []);
+    }).catch(() => {
+      if (active) {
+        setDetail(null);
+        setHistory([]);
+      }
     });
+    return () => {
+      active = false;
+    };
+  }, [token, selectedId, selectedRange]);
+
+  const chartPoints = useMemo(() => history.map((point) => ({ ...point, timestamp: point.timestamp })), [history]);
+  const assets = payload?.assets || [];
+  const global = payload?.global || {};
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className={`text-3xl font-extrabold ${dark ? 'text-white' : 'text-gray-900'}`}>Markets</h1>
-        <p className={`mt-1 text-sm ${muted}`}>Live AI signals across all tracked cryptocurrencies</p>
-      </div>
-
-      {/* Market overview stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Total Market Cap', value: '$2.41T', change: '+2.1%', up: true },
-          { label: 'BTC Dominance',    value: '52.3%',  change: '+0.4%', up: true },
-          { label: 'Fear & Greed',     value: '68 Greed',change: '+5pts',up: true },
-          { label: 'Active Signals',   value: '4 BUY / 1 SELL', change: 'RSI driven', up: true },
-        ].map(s => (
-          <div key={s.label} className={`rounded-2xl border p-4 card-hover ${card}`}>
-            <p className={`text-xs uppercase tracking-wider mb-2 ${muted}`}>{s.label}</p>
-            <p className="text-xl font-extrabold">{s.value}</p>
-            <p className={`text-xs font-semibold mt-1 ${s.up ? 'text-emerald-500' : 'text-red-500'}`}>{s.change}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Search + filter bar */}
-      <div className={`rounded-2xl border p-5 mb-6 ${card}`}>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <input
-            value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search coin (BTC, Ethereum...)"
-            className={`flex-1 px-4 py-2.5 rounded-xl border text-sm outline-none focus:border-indigo-400 transition-colors ${input}`}
-          />
-          <select
-            value={sort} onChange={e => setSort(e.target.value)}
-            className={`px-4 py-2.5 rounded-xl border text-sm outline-none cursor-pointer ${input}`}
-          >
-            {SORTS.map(s => <option key={s}>{s}</option>)}
-          </select>
-        </div>
-        <div className="flex gap-2 mt-4 flex-wrap">
-          {FILTERS.map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filter === f ? pillActive : pillInactive}`}>
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Full asset table */}
-      <div className={`rounded-2xl border overflow-hidden ${card}`}>
-        <div className={`grid grid-cols-12 gap-2 px-5 py-3 text-[10px] font-bold uppercase tracking-widest ${muted} border-b ${dark ? 'border-gray-800' : 'border-gray-100'}`}>
-          <span className="col-span-4">Asset</span>
-          <span className="col-span-2 text-right">Price</span>
-          <span className="col-span-2 text-right">24h Change</span>
-          <span className="col-span-2 text-right hidden sm:block">7d Trend</span>
-          <span className="col-span-1 text-right hidden md:block">Conf.</span>
-          <span className="col-span-1 text-right">Signal</span>
-        </div>
-        {filtered.map((asset, i) => {
-          const isUp = asset.change24h >= 0;
-          return (
-            <button key={asset.id} onClick={() => setSelected(selected === asset.id ? null : asset.id)}
-              className={`w-full grid grid-cols-12 gap-2 px-5 py-4 items-center text-left transition-all
-                ${dark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}
-                ${i !== filtered.length - 1 ? (dark ? 'border-b border-gray-800' : 'border-b border-gray-50') : ''}`}>
-              <div className="col-span-4 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xs font-extrabold text-indigo-600 flex-shrink-0">
-                  {asset.symbol.slice(0,2)}
+    <main className="min-h-screen bg-[#080808] px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <section className="premium-panel p-6 lg:p-8">
+          <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/34">Live markets</p>
+              <h1 className="mt-4 text-5xl font-black leading-[0.92] tracking-[-0.04em] text-white sm:text-6xl">
+                A premium market terminal for deeper screening.
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-white/46">
+                Explore more coins, watch market breadth in real time, and inspect each asset with the same strategy-first visual system as the dashboard.
+              </p>
+            </div>
+            <div className="grid gap-px bg-white/10 sm:grid-cols-2">
+              {[
+                ['Global market cap', formatCurrency(global.market_cap_usd)],
+                ['24h volume', formatCurrency(global.volume_usd)],
+                ['BTC dominance', `${Number(global.btc_dominance || 0).toFixed(2)}%`],
+                ['Tracked assets', payload?.assets?.length || 0],
+              ].map(([label, value]) => (
+                <div key={label} className="bg-[#101010] p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/34">{label}</p>
+                  <p className="mt-3 text-2xl font-black text-white">{value}</p>
                 </div>
-                <div>
-                  <p className="text-sm font-bold">{asset.symbol}</p>
-                  <p className={`text-xs ${muted}`}>{asset.name}</p>
-                </div>
-              </div>
-              <div className="col-span-2 text-right">
-                <p className="text-sm font-bold">
-                  ${asset.price >= 1000 ? asset.price.toLocaleString() : asset.price < 10 ? asset.price.toFixed(3) : asset.price.toFixed(2)}
-                </p>
-                <p className={`text-xs ${muted}`}>{asset.marketCap}</p>
-              </div>
-              <div className="col-span-2 text-right">
-                <p className={`text-sm font-bold ${isUp ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {isUp ? '▲' : '▼'} {Math.abs(asset.change24h).toFixed(2)}%
-                </p>
-              </div>
-              <div className="col-span-2 flex justify-end hidden sm:flex">
-                <Sparkline data={asset.sparkline} positive={isUp} />
-              </div>
-              <div className="col-span-1 text-right hidden md:block">
-                <p className={`text-sm font-bold ${asset.aiAction === 'BUY' ? 'text-emerald-500' : asset.aiAction === 'SELL' ? 'text-red-500' : 'text-gray-400'}`}>
-                  {asset.confidence}%
-                </p>
-              </div>
-              <div className="col-span-1 flex justify-end">
-                <ActionBadge action={asset.aiAction} />
-              </div>
-            </button>
-          );
-        })}
-        {filtered.length === 0 && (
-          <div className="py-16 text-center">
-            <p className="text-4xl mb-3">🔍</p>
-            <p className={`font-semibold ${muted}`}>No assets match your filter</p>
+              ))}
+            </div>
           </div>
-        )}
+        </section>
+
+        <section className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="space-y-6">
+            <div className="premium-panel p-5">
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  className="flex-1 border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                  placeholder="Search by asset name or symbol"
+                />
+                <select
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                  className="border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="premium-panel overflow-hidden">
+              <div className="grid grid-cols-12 gap-2 border-b border-white/10 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/34">
+                <span className="col-span-4">Asset</span>
+                <span className="col-span-2 text-right">Price</span>
+                <span className="col-span-2 text-right">24h</span>
+                <span className="col-span-2 text-right hidden sm:block">7d</span>
+                <span className="col-span-2 text-right">Volume</span>
+              </div>
+              <div className="max-h-[720px] overflow-auto">
+                {assets.map((asset) => (
+                  <button
+                    key={asset.id}
+                    onClick={() => setSelectedId(asset.id)}
+                    className={`grid w-full grid-cols-12 gap-2 border-b border-white/10 px-5 py-4 text-left transition-colors hover:bg-white/[0.04] ${
+                      selectedId === asset.id ? 'bg-white/[0.04]' : ''
+                    }`}
+                  >
+                    <div className="col-span-4">
+                      <p className="text-sm font-black text-white">{asset.name}</p>
+                      <p className="text-xs text-white/35">{asset.symbol}</p>
+                    </div>
+                    <div className="col-span-2 text-right text-sm font-semibold text-white">{formatCurrency(asset.price)}</div>
+                    <div className={`col-span-2 text-right text-sm font-bold ${asset.change_24h >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                      {asset.change_24h >= 0 ? '+' : ''}{asset.change_24h.toFixed(2)}%
+                    </div>
+                    <div className={`col-span-2 hidden text-right text-sm font-bold sm:block ${Number(asset.change_7d || 0) >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+                      {Number(asset.change_7d || 0) >= 0 ? '+' : ''}{Number(asset.change_7d || 0).toFixed(2)}%
+                    </div>
+                    <div className="col-span-2 text-right text-sm text-white/50">{formatCurrency(asset.total_volume)}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <aside className="space-y-4">
+            {detail ? (
+              <div className="premium-panel p-5">
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/34">Selected asset</p>
+                    <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-white">{detail.asset.name}</h2>
+                    <p className="mt-1 text-sm text-white/42">{detail.asset.symbol}</p>
+                  </div>
+                  <BarChart3 className="text-white/35" size={18} />
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/34">Price</p>
+                    <p className="mt-2 text-xl font-black text-white">{formatCurrency(detail.asset.price)}</p>
+                  </div>
+                  <div className="border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/34">RSI</p>
+                    <p className={`mt-2 text-xl font-black ${detail.signal_state.rsi === 'good' ? 'text-emerald-200' : detail.signal_state.rsi === 'bad' ? 'text-red-200' : 'text-white'}`}>
+                      {detail.market_data.rsi}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex gap-2">
+                  {['7d', '30d'].map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => setSelectedRange(option)}
+                      className={`border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] ${
+                        selectedRange === option ? 'border-white bg-white text-black' : 'border-white/10 text-white/45'
+                      }`}
+                    >
+                      {option === '7d' ? '1 week' : '1 month'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-5">
+                  <PriceChart points={chartPoints} color={detail.asset.change_24h >= 0 ? '#6ee7b7' : '#fda4af'} height={220} />
+                </div>
+
+                <div className="mt-5 border border-white/10 bg-black/20 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/34">AI recommendation</p>
+                  <p className="mt-2 text-2xl font-black text-white">{detail.recommendation.action}</p>
+                  <p className="mt-2 text-sm text-white/48">{detail.recommendation.reason}</p>
+                </div>
+
+                <div className="mt-5 text-sm text-white/45">
+                  {detail.description || 'Live market description unavailable for this asset.'}
+                </div>
+                {detail.homepage ? (
+                  <a href={detail.homepage} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white/60">
+                    Visit project <ArrowUpRight size={14} />
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+          </aside>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

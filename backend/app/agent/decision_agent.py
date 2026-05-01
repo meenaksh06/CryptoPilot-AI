@@ -13,15 +13,13 @@ class DecisionAgent:
         self.current_strategy = StrategyType.RSI
 
     def select_strategy(self, data: MarketData) -> StrategyType:
-        # Dynamic selection logic
-        # If volatility is high, maybe use RSI
-        # If neutral, use HOLD
-        if data.volatility and data.volatility > 0.02:
+        if data.volatility and data.volatility > 0.035:
             return StrategyType.RSI
-        
-        # Check memory - if RSI has been failing, maybe try DCA?
         stats = memory_store.get_strategy_stats()
-        # (Simplified logic for now)
+        rsi_stats = stats["performance"].get(StrategyType.RSI.value, 0)
+        dca_stats = stats["performance"].get(StrategyType.DCA.value, 0)
+        if data.sentiment is not None and data.sentiment < -0.03 and dca_stats >= rsi_stats:
+            return StrategyType.DCA
         return StrategyType.RSI
 
     async def decide(self, data: MarketData) -> AgentDecision:

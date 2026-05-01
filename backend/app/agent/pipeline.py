@@ -18,13 +18,9 @@ class AgentPipeline:
         self.is_running = True
         while self.is_running:
             try:
-                # 1. Fetch Market Data
-                data = market_service.generate_next_price()
-                
-                # 2. Agent Decision
+                detail = market_service.get_asset("bitcoin")
+                data = detail.market_data
                 decision = await decision_agent.decide(data)
-                
-                # 3. Execution (if action is BUY/SELL)
                 trade = None
                 if decision.action != Action.HOLD:
                     trade = execution_engine.execute_trade(
@@ -34,29 +30,23 @@ class AgentPipeline:
                         strategy=decision.strategy,
                         reason=decision.reason
                     )
-                
-                # 4. Memory Update
                 if trade:
                     memory_store.update_memory(trade)
-                
-                # 5. Notify Callbacks (e.g., WebSocket)
                 portfolio = execution_engine.get_portfolio({data.symbol: data.price})
-                
                 payload = {
                     "market_data": data.dict(),
                     "decision": decision.dict(),
                     "trade": trade.dict() if trade else None,
-                    "portfolio": portfolio.dict()
+                    "portfolio": portfolio.dict(),
+                    "tracked_assets": [detail.asset.dict()],
+                    "signal_state": {key: value.value for key, value in detail.signal_state.items()},
                 }
-                
                 for callback in self.callbacks:
                     await callback(payload)
-                
-                await asyncio.sleep(2) # Tick every 2 seconds
-                
+                await asyncio.sleep(20)
             except Exception as e:
                 print(f"Error in pipeline: {e}")
-                await asyncio.sleep(5)
+                await asyncio.sleep(15)
 
     def stop(self):
         self.is_running = False

@@ -18,7 +18,6 @@ export const Sparkline = ({ data = [], positive = true }) => {
     .join(' ');
 
   // Area fill
-  const firstX = 0;
   const lastX = W;
   const areaPoints = `0,${H} ${points} ${lastX},${H}`;
 

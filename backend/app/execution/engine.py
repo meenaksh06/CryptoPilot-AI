@@ -23,28 +23,40 @@ class ExecutionEngine:
                 new_amount = pos.amount + crypto_amount
                 new_entry = (pos.amount * pos.entry_price + amount_to_spend) / new_amount
                 self.positions[symbol] = Position(
+                    id=symbol.lower().replace("/", "-"),
                     symbol=symbol,
+                    name=symbol.split("/")[0],
                     amount=new_amount,
                     entry_price=new_entry,
+                    current_price=price,
                     timestamp=datetime.now()
                 )
             else:
                 self.positions[symbol] = Position(
+                    id=symbol.lower().replace("/", "-"),
                     symbol=symbol,
+                    name=symbol.split("/")[0],
                     amount=crypto_amount,
                     entry_price=price,
+                    current_price=price,
                     timestamp=datetime.now()
                 )
             
             trade = Trade(
                 id=str(uuid.uuid4()),
                 symbol=symbol,
+                asset_id=symbol.lower().replace("/", "-"),
+                asset_name=symbol.split("/")[0],
                 action=Action.BUY,
                 amount=crypto_amount,
                 price=price,
+                current_price=price,
+                pnl=0.0,
+                pnl_pct=0.0,
                 timestamp=datetime.now(),
                 strategy=strategy,
-                reason=reason
+                reason=reason,
+                status="open",
             )
             self.trade_history.append(trade)
             return trade
@@ -57,16 +69,24 @@ class ExecutionEngine:
             amount_to_sell = pos.amount # Sell all
             sale_value = amount_to_sell * price
             self.balance += sale_value
+            pnl = (price - pos.entry_price) * amount_to_sell
+            pnl_pct = ((price - pos.entry_price) / pos.entry_price) * 100 if pos.entry_price else 0.0
             
             trade = Trade(
                 id=str(uuid.uuid4()),
                 symbol=symbol,
+                asset_id=symbol.lower().replace("/", "-"),
+                asset_name=symbol.split("/")[0],
                 action=Action.SELL,
                 amount=amount_to_sell,
                 price=price,
+                current_price=price,
+                pnl=pnl,
+                pnl_pct=pnl_pct,
                 timestamp=datetime.now(),
                 strategy=strategy,
-                reason=reason
+                reason=reason,
+                status="closed",
             )
             
             del self.positions[symbol]
@@ -79,6 +99,7 @@ class ExecutionEngine:
         total_value = self.balance
         for symbol, pos in self.positions.items():
             price = current_prices.get(symbol, pos.entry_price)
+            pos.current_price = price
             total_value += pos.amount * price
             
         return Portfolio(
