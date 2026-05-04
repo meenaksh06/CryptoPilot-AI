@@ -8,6 +8,7 @@ pandas
 requests
 scipy
 firebase-admin
+gunicorn
 # optional for later
 # openai
 # redis
