@@ -44,7 +44,7 @@ const AnimatedStat = ({ finalValue }) => {
           setHasAnimated(true);
           
           let iterations = 0;
-          const maxIterations = 30;
+          const maxIterations = 45;
           const chars = '0123456789';
           
           const interval = setInterval(() => {
@@ -65,7 +65,7 @@ const AnimatedStat = ({ finalValue }) => {
             }).join(''));
             
             iterations++;
-          }, 40);
+          }, 75);
         }
       },
       { threshold: 0.1 }
