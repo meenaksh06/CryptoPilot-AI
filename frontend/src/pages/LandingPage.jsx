@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 
@@ -126,7 +126,7 @@ export default function LandingPage() {
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-white/10 md:grid-cols-4">
             {STATS.map((stat) => (
               <div key={stat.label} className="bg-[#080808] px-6 py-10">
-                <p className="text-4xl font-black tracking-tight">{stat.value}</p>
+                <p className="text-4xl font-black tracking-tight"><AnimatedStat finalValue={stat.value} /></p>
                 <p className="mt-2 text-xs font-bold uppercase tracking-[0.22em] text-white/38">{stat.label}</p>
               </div>
             ))}
