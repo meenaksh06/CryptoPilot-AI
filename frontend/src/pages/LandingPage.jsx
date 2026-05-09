@@ -32,6 +32,55 @@ const STATS = [
   { value: '24/7', label: 'agent monitoring' },
 ];
 
+const AnimatedStat = ({ finalValue }) => {
+  const [displayValue, setDisplayValue] = useState(finalValue.replace(/[0-9]/g, '0'));
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const elementRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          
+          let iterations = 0;
+          const maxIterations = 30;
+          const chars = '0123456789';
+          
+          const interval = setInterval(() => {
+            if (iterations >= maxIterations) {
+              clearInterval(interval);
+              setDisplayValue(finalValue);
+              return;
+            }
+            
+            setDisplayValue(finalValue.split('').map((char, index) => {
+              if (index < (iterations / maxIterations) * finalValue.length) {
+                return finalValue[index];
+              }
+              if (/[0-9]/.test(char)) {
+                 return chars[Math.floor(Math.random() * chars.length)];
+              }
+              return char;
+            }).join(''));
+            
+            iterations++;
+          }, 40);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [finalValue, hasAnimated]);
+
+  return <span ref={elementRef} className="tabular-nums">{displayValue}</span>;
+};
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
