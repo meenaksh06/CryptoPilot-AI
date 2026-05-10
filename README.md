@@ -41,7 +41,7 @@ npm run dev
 - `frontend/src/App.jsx`: Main dashboard UI.
 
 ## How it Works
-1. **Fetch**: The `MarketDataService` generates/fetches live price data.
+1. **Fetch**: The `MarketDataService` generates/fetches live price on live data.
 2. **Think**: The `DecisionAgent` analyzes indicators and selects the best strategy.
 3. **Execute**: If a signal is generated, the `ExecutionEngine` updates the virtual portfolio.
 4. **Learn**: The `MemoryStore` tracks trade success for future strategy adjustments.
