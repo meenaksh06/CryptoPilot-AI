@@ -38,7 +38,7 @@ npm run dev
 - `backend/app/strategies`: Trading algorithms (RSI, DCA).
 - `backend/app/execution`: Simulated trade engine.
 - `backend/app/memory`: Performance tracking and feedback data.
-- `frontend/src/App.jsx`: Main dashboard UI.
+- `frontend/src/App.jsx`: Main dashboard UI generating live stats.
 
 ## How it Works
 1. **Fetch**: The `MarketDataService` generates/fetches live price on live data.
