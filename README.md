@@ -1,6 +1,6 @@
 # CryptoPilot AI 
 
-An agentic cryptocurrency trading assistant that autonomously analyzes market data, selects strategies, and executes simulated trades.
+An agentic cryptocurrency trading AI assistant that autonomously analyzes market data, selects strategies, and executes simulated trades.
 
 ## Features
 - **Agentic Pipeline**: Autonomous decision-making loop.
