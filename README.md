@@ -7,7 +7,7 @@ An agentic cryptocurrency trading AI assistant that autonomously analyzes market
 - **Dynamic Strategy Selection**: Switches between RSI, DCA, and HOLD based on market conditions.
 - **Explainable AI**: Provides human-readable reasoning for every action.
 - **Simulated Execution**: Virtual portfolio management with real-time balance updates.
-- **Premium Dashboard**: High-fidelity React UI with live charts.
+- **Premium Dashboard**: High-fidelity React UI with live charts and reasoning logs.
 
 ## Tech Stack
 - **Backend**: FastAPI (Python)
