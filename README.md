@@ -45,4 +45,4 @@ npm run dev
 2. **Think**: The `DecisionAgent` analyzes indicators and selects the best strategy.
 3. **Execute**: If a signal is generated, the `ExecutionEngine` updates the virtual portfolio.
 4. **Learn**: The `MemoryStore` tracks trade success for future strategy adjustments.
-5. **Stream**: All updates are sent via WebSocket to the  .
+5. **Stream**: All updates are sent via WebSocket to the frontend in real-time.
