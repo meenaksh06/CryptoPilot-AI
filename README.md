@@ -30,7 +30,7 @@ uvicorn app.main:app --reload
 ```bash
 cd frontend
 npm install
-npm run 
+npm run dev
 ```
 
 ## Project Structure
